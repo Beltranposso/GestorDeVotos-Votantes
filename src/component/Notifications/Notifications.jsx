@@ -42,7 +42,7 @@ const MyComponent = ({ variant }) => {
           </div>
         </div>
 
-        {/* Imagen adicional solo en Danger */}
+        
         {variant === "Danger" && (
           <div className="mt-4 ml-[-30px] mr-10">
             <img src={DangerImage} alt="Imagen adicional de peligro" width={300} height={150} />
@@ -50,11 +50,11 @@ const MyComponent = ({ variant }) => {
         )}
       </div>
 
-      {/* Contenedor de imagen y botón */}
+    
       <div className="w-full flex flex-col justify-center items-center bg-[#F0F4F8]">
         {variant && (
           <div className="mt-8">
-            {/* Imagen principal dependiendo de la variante */}
+            
             <img src={image} alt={`${variant} image`} width={400} height={250} />
           </div>
         )}
