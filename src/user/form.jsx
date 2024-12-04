@@ -104,13 +104,81 @@ const Formulario = ({IdCard,Notification}) => {
     
    return (
 
-      <div className="flex flex-col  h-full justify-between ">
+      <div className="flex bg-white flex-col    h-full justify-between ">
          <div>
             <img src={ControlImg} alt="" width={200} height={100} />
          </div>
 
     
-{Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
+         <div className='flex justify-center mx-5 '>
+     <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5 h-auto transition-all duration-75 '>
+       <header className='flex flex-col gap-2'>
+         <p className='text-2xl'>{"pregunta de pruebaa"}</p>
+       </header>
+       <main >
+         <Form>
+           <div className="flex flex-col gap-4 text-lg max-w-[400px]">
+          
+
+                  <Form.Check
+                    className='flex gap-3'
+                    inline
+                  
+                    value={"s"}
+                    label={"si"}
+                   /*  name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta */
+                    type='radio'
+                    onChange={() => console.log("hola")}  
+                  /> 
+                  
+                  <Form.Check
+                    className='flex gap-3'
+                    inline
+                  
+                    value={"s"}
+                    label={"no"}
+                   /*  name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta */
+                    type='radio'
+                    onChange={() => console.log("hola")}  
+                  /> 
+           
+           </div>
+         </Form>
+       </main>
+     </div>
+   </div>
+
+   
+            <div className='flex justify-center w-full '>
+
+
+               <button onClick={Enviarvoto} className="px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none mx-5 focus:ring focus:ring-blue-300 focus:ring-opacity-80 w-[500px]">
+                  Enviar
+               </button>
+            </div>
+         
+
+
+
+         <div className='flex justify-center h-20  items-center  '>
+         </div>
+         <footer className=''>
+            <Footer></Footer>
+         </footer>
+
+      </div>
+
+
+
+
+)
+}
+
+
+export default Formulario;    
+
+
+{/* {Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
 
    <div className='flex justify-center'>
      <div className='flex flex-col w-[550px] h-[320px] gap-6 border-2 rounded-2xl p-5'>
@@ -141,32 +209,30 @@ const Formulario = ({IdCard,Notification}) => {
        </main>
      </div>
    </div>
-)) }
-
-         
-
-
-
-         <div className='flex justify-center h-20  items-center  '>
-            <div className='flex justify-end w-1/3 '>
-
-
-               <button onClick={Enviarvoto} className="px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-80">
-                  Enviar
-               </button>
-            </div>
-         </div>
-         <footer className=''>
-            <Footer></Footer>
-         </footer>
-
-      </div>
+)) } */}
 
 
 
 
-   )
-}
 
 
-export default Formulario;    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

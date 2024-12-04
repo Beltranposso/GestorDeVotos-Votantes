@@ -8,6 +8,7 @@ import Sucesfull from "../component/Sucesfull";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import VotacionFinalizada from "../component/votingfinalized";
+import Notification from "../component/Notifications/Notifications";
 const socket = io("https://serverapivote.co.control360.co", { reconnection: false });
 
  const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/';
@@ -99,7 +100,7 @@ console.log("estado",Start2)
         <div className="h-full">
 
             <Sucesfull open={isOpen} close={hideToast} />
-            {estado ? <Layaut children={component}  /> : <Validation id={decodedid} />}
+            {true ? <Layaut children={<Notification variant="Danger"/>}  /> : <Validation id={decodedid} />}
         </div>
     );
 };
