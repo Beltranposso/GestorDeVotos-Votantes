@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Formulario,Validation,Content } from "./pages";
+import { Formulario,Validation,Content,Home } from "./pages";
 
 
 
@@ -9,11 +9,11 @@ export  const routes = [
         path: '/c/:id',
         component: <Content></Content>,
     },
-/* 
+
 
     {
-        path: '',
-        component: <Validation></Validation>,  
-    } */
+        path: '/Home',
+        component: <Home></Home>,  
+    } 
    
 ]

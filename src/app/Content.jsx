@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useFetcher, useParams } from "react-router-dom";
 import Validation from "../user/validation";
 import Layaut from './layautMenu/waitingMenu';
 import Form from "../user/form";
@@ -7,79 +7,63 @@ import WaitingMenu from "../component/Wating";
 import Sucesfull from "../component/Sucesfull";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { URI24, URI25, URI26, URI28 } from '../services/conexiones';
 import VotacionFinalizada from "../component/votingfinalized";
 import Notification from "../component/Notifications/Notifications";
-const socket = io("https://serverapivote.co.control360.co", { reconnection: false });
+import { use } from "react";
+import { set } from "react-hook-form";
 
- const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/';
+/* const socket = io("https://serverapivote.co.control360.co", { reconnection: false }); */
+
+/*  const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/'; */
+const URI9 = 'https://localhost:8000/api/votacion/estado/';
+
 const Content = () => {
     const { id } = useParams();
-    const iddecoded = atob(id);
     
-    const [estado, setEstado] = useState(() => localStorage.getItem('confirmationStatus'));
- 
+    const socket = io("http://localhost:8000/");
+
+    const [estado, setEstado] = useState();
+
     const [Start2, setEstart2] = useState('');
     const [component, setComponent] = useState();
- 
-    const decodedid = atob(id);
-    
+    const [Estatus, setEstatus] = useState('');
+    const[Asistencia, setAsistencia] = useState('');
+    const[señal, setseñal] = useState('');
+    const decodedId = atob(id);
 
-    
     useEffect(() => {
         const handleStorageChange = () => {
             setEstado(localStorage.getItem('confirmationStatus'));
         };
-        
+
         window.addEventListener('storage', handleStorageChange);
-        
+
         return () => {
             window.removeEventListener('storage', handleStorageChange);
         };
     }, []);
-    
+
+
+
+
+
+
+    /*    const getEstado = async () => {
+           try {
+             const response = await axios.get(`${URI9}${iddecoded}`);
+             setEstart2(response.data);
+           } catch (error) {
+             console.error('Error al obtener el enlace:', error);
+           }
+          }
    
-    
-    
-    useEffect(() => {
-        socket.on('I', (Estado) => {
-
-            setEstart2(Estado);
-            console.log(Estado);
-        });
-
-      
-        return () => {
-            socket.off('I');   
-        }
-
-    }, [Start2]); 
-
-    const getEstado = async () => {
-        try {
-          const response = await axios.get(`${URI9}${iddecoded}`);
-          setEstart2(response.data);
-        } catch (error) {
-          console.error('Error al obtener el enlace:', error);
-        }
-       }
-
-       useEffect(() => {
-        getEstado();
-       },[]) 
+          useEffect(() => {
+           getEstado();
+          },[])  */
 
 
-useEffect(() => {
-   if(Start2 === 'notestate'){
-    setComponent(<WaitingMenu />)   
-   }else if(Start2 === 'Activa'){
-   setComponent(<Form IdCard={decodedid} />)
-   }else if (Start2 === 'Finalizada'){
-    setComponent(<VotacionFinalizada />)
-   }else{
-    console.log('error')
-   }
-}, [Start2]);
-console.log("estado",Start2)
+
 
 
     const [isOpen, setIsOpen] = useState(localStorage.getItem('n'));
@@ -92,17 +76,182 @@ console.log("estado",Start2)
         setIsOpen(false);
         localStorage.removeItem('n');
     };
- 
 
 
+    const checkVotingStatus = async (Cedula) => {
+        if (!Cedula) {
+            alert("Cédula no proporcionada.");
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `${URI24}${decodedId}`,
+                { Cedula },
+                { withCredentials: true }
+            );
+
+            const { success, message } = response.data;
+
+            if (success) {
+
+                setEstado(true);
+            } else {
+
+            }
+        } catch (error) {
+            if (error.response) {
+                alert(error.response.data.message || "Error en el servidor.");
+            } else {
+                alert("Error de conexión con el servidor.");
+            }
+        }
+    };
+
+    const checkVotingStatusFromToken = async () => {
+        try {
+            // Realizar la solicitud POST a la API para verificar el estado de votación
+            const response = await axios.post('http://localhost:8000/Check-user-token', { id_card: decodedId }, {
+                withCredentials: true,  // Pasar withCredentials como configuración
+            });
+
+            if (response.data.message === 'El usuario ya ha votado.' || response.data.message === 'Ya te verificaste en esta Asmablea.') {
+
+
+                setEstado(true);
+
+            } else {
+                console.log(response.data);
+                // Aquí puedes manejar los casos de error como "No registrado" o "Ya ha votado"
+            }
+        } catch (error) {
+            console.log('Error al verificar el estado de votación:', error.message);
+            // Puedes manejar los errores de la llamada aquí, como si no se encuentra el token
+        }
+    };
+
+
+    const getEstatus = async () => {
+        try {
+            const response = await axios.get(URI28 + decodedId);
+            setEstatus(response.data.Estado);
+        } catch (error) {
+            console.error('Error al obtener el enlace:', error);
+        }
+    }
+
+    const obtenerAsistencia = async () => {
+        try {
+            // Mejor manejo de errores y más descriptivo
+            const response = await axios.get('http://localhost:8000/UsersDefinitive/A/get-asistencia', {
+                withCredentials: true,
+            });
+    
+            // Validación más robusta de la respuesta
+            if (response.status === 200 && response.data) {
+                const asistencia = response.data.Asistencia;
+                setAsistencia(asistencia);  
+                // Validación adicional del valor de asistencia
+                if (asistencia !== undefined && asistencia !== null) {
+                    console.log("Asistencia del usuario:", asistencia);
+
+
+                    return asistencia;
+                } else {
+                    console.warn("Asistencia recibida es inválida");
+                    return null;
+                }
+            } else {
+                console.error("Error inesperado:", response.status);
+                return null;
+            }
+        } catch (error) {
+            // Manejo más detallado de errores
+            if (error.response) {
+                // El servidor respondió con un status code fuera de 2xx
+                console.error("Error de respuesta del servidor:", error.response.data);
+                console.error("Status:", error.response.status);
+            } else if (error.request) {
+                // La solicitud se hizo pero no se recibió respuesta
+                console.error("No se recibió respuesta del servidor");
+            } else {
+                // Algo sucedió al configurar la solicitud
+                console.error("Error al configurar la solicitud:", error.message);
+            }
+            
+            return null;
+        }
+    };
+    
+    
+
+    
+    
+    useEffect(() => {
+        socket.on('ISO', (Estado) => {
+            setEstatus(Estado);
+            console.log(Estado)
+        })
+        
+        getEstatus();
+        checkVotingStatusFromToken()
+        
+    }, [Estatus]);
+    
+    
+    
+    
+    
+    
+        useEffect(() => {
+    
+            getEstatus();
+            checkVotingStatusFromToken()
+            obtenerAsistencia();
+        });
+
+    
+    
+    
+
+     useEffect(() => {
+        if (Estatus === 'Finalizada') {
+
+            setComponent(<Notification variant="Finalizada" />)
+        } else if (Estatus === 'Activa') {
+               
+            if (Asistencia === 'Ausente') {
+
+                setComponent(<Notification variant="Validitacion" />)
+             
+            }else if(Asistencia === 'Presente'){
+               
+                setComponent(<Form IdCard={decodedId} />)
+            }
+        }
+    }, [Estatus, Asistencia]);
+
  
+useEffect(() => {
+
+    socket.on('ASIST',(Asistencia) => {
+    console.log("vaina recibida del soctet",Asistencia)
+    setseñal(Asistencia)
+})
+
+obtenerAsistencia();
+}, [Asistencia]);
+
+
+
     return (
         <div className="h-full">
 
             <Sucesfull open={isOpen} close={hideToast} />
-            {true ? <Layaut children={<Notification variant="Danger"/>}  /> : <Validation id={decodedid} />}
+            {estado ? <Layaut children={component} /> : <Validation onclick={checkVotingStatus} id={id} />}
         </div>
     );
 };
 
 export default Content;
+

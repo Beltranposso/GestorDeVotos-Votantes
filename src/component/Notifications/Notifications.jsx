@@ -8,12 +8,13 @@ import DangerImage from "../../assets/DangerImage.png";
 const MyComponent = ({ variant }) => {
   const [color, setColor] = useState("");
   const [text, setText] = useState("");
+  const[text2, setText2] = useState("");
   const [image, setImage] = useState("");
 
   useEffect(() => {
-    if (variant === "Espera") {
+    if (variant === "Activa") {
       setColor("#1B263B");
-      setText("Estamos a la espera de que el anfitrión active la Asamblea");
+      setText("La asamblea ha comenzado....");
       setImage(PNG2);
     } else if (variant === "Danger") {
       setColor("#FF0000");
@@ -23,22 +24,32 @@ const MyComponent = ({ variant }) => {
       setColor("#00E509");
       setText("¡Tu respuesta ha sido enviada con éxito! Gracias por tu participación.");
       setImage(PNG3);
+    }else if(variant === "Finalizada"){
+      setColor("#F2AB26");
+      setText("La asamblea ha sido Finalizada. Muchas Gracias Por asistir.");
+      setImage(PNG3);
+    }else if(variant === "Validitacion"){
+      setColor("#1B263B");
+      setText("Porfavor, Valide su asitencia.");
+      setText2("Acerquese al operador de registro mas cercano.");
+      setImage(PNG2);
     }
   }, [variant]);
 
   return (
-    <div className="flex h-full w-full bg-[#F0F4F8] flex-wrap sm:flex-nowrap">
+    <div className="flex h-full w-full bg-[#F0F4F8] flex-wrap sm:flex-nowrap p-1   max-w-[2000px] justify-center items-center">
       {/* Contenedor de texto */}
       <div
-        className="flex flex-col h-full justify-center items-center w-full text-white"
+        className="flex flex-col h-full justify-center items-center w-full text-white rounded-lg"
         style={{ backgroundColor: color }}
       >
         <div className="flex flex-col text-sm justify-center items-center h-[300px] w-5/6 gap-5">
           <div className="w-full flex justify-start">
             <img src={PNG} width={150} height={100} alt="Logo" />
           </div>
-          <div className="flex flex-col w-full justify-start text-2xl xs:text-sm sm:text-4xl font-bold">
+          <div className="flex flex-col w-full justify-start text-2xl xs:text-sm sm:text-4xl font-bold gap-2">
             <h1>{text}</h1>
+            <p className="text-lg">{text2}</p>
           </div>
         </div>
 
