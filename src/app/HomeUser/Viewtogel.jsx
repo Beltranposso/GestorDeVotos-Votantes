@@ -3,7 +3,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function ViewToggle({ viewMode, onViewChange }) {
   return (
-    <div className="flex justify-end">
+    <div className="flex justify-between">
+      <h2 className='text-xl'>Asambleas Disponibles</h2>
       <Tabs defaultValue={viewMode} className="w-[100px]">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="grid" onClick={() => onViewChange('grid')}>
@@ -14,6 +15,7 @@ export function ViewToggle({ viewMode, onViewChange }) {
           </TabsTrigger>
         </TabsList>
       </Tabs>
+
     </div>
   );
 }

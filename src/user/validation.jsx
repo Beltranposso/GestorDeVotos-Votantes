@@ -7,6 +7,7 @@ import '../App.css';
 import { useEffect } from 'react';
 import { useNavigate,useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
+import { ArrowLeft } from 'lucide-react';
 
 
 const Validation = ({id,onclick}) => {
@@ -17,13 +18,32 @@ const Validation = ({id,onclick}) => {
   const [mensaje, setMensaje] = useState(''); 
   const [voto, setVoto] = useState([]);
   const [men , setMen] = useState('');
-   
+  const navigate = useNavigate();
 
+
+
+
+
+const Redirect = () => {
+  navigate('/Home');
+}
 
 
 
   return (
     <div className="flex flex-col h-full justify-between items-center">
+      <div className='flex flex-col items-center w-full p-2  '>
+
+           <div className='flex justify-start w-full h-full pl-10'>
+          <button
+          onClick={Redirect}
+          className="flex items-center gap-2 px-4 py-2 bg-sky-400 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-md active:transform active:scale-95"
+        >
+          <ArrowLeft size={20} />
+          <span>Devolver</span>
+        </button>
+          </div> 
+   
       <div className="flex flex-col w-[550px] h-[400px] mt-20 gap-5 ">
         <header className="flex justify-center items-center pr-5">
           <img className="w-5/6 h-[85%]" src={imgControl} alt="Imagen de control" height={100} />
@@ -56,6 +76,7 @@ const Validation = ({id,onclick}) => {
 
         {/* Mostrar mensaje de validación */}
       
+      </div>
       </div>
       
       <Footer />

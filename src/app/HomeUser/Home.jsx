@@ -84,6 +84,7 @@ console.log(Asamblea)
               onStatusChange={setStatusFilter}
         
             />
+            
             <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           </div>
 
