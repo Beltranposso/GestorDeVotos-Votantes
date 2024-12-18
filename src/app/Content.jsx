@@ -16,12 +16,12 @@ import { set } from "react-hook-form";
 /* const socket = io("https://serverapivote.co.control360.co", { reconnection: false }); */
 
 /*  const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/'; */
-const URI9 = 'https://localhost:8000/api/votacion/estado/';
+const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/';
 
 const Content = () => {
     const { id } = useParams();
     
-    const socket = io("http://localhost:8000/");
+    const socket = io("https://serverapivote.co.control360.co/");
 
     const [estado, setEstado] = useState();
 
@@ -86,7 +86,7 @@ const Content = () => {
 
         try {
             const response = await axios.post(
-                `${URI24}${decodedId}`,
+                `${URI24}${id}`,
                 { Cedula },
                 { withCredentials: true }
             );
@@ -111,7 +111,7 @@ const Content = () => {
     const checkVotingStatusFromToken = async () => {
         try {
             // Realizar la solicitud POST a la API para verificar el estado de votación
-            const response = await axios.post('http://localhost:8000/Check-user-token', { id_card: decodedId }, {
+            const response = await axios.post('https://serverapivote.co.control360.co/Check-user-token', { id_card: decodedId }, {
                 withCredentials: true,  // Pasar withCredentials como configuración
             });
 
@@ -143,7 +143,7 @@ const Content = () => {
     const obtenerAsistencia = async () => {
         try {
             // Mejor manejo de errores y más descriptivo
-            const response = await axios.get('http://localhost:8000/UsersDefinitive/A/get-asistencia', {
+            const response = await axios.get('https://serverapivote.co.control360.co/UsersDefinitive/A/get-asistencia', {
                 withCredentials: true,
             });
     
@@ -248,10 +248,12 @@ obtenerAsistencia();
         <div className="h-full">
 
             <Sucesfull open={isOpen} close={hideToast} />
-            {estado ? <Layaut children={component} /> : <Validation onclick={checkVotingStatus} id={id} />}
+            {estado ? <Layaut children={component} /> : <Validation onclick={checkVotingStatus} />  }
+           
         </div>
     );
 };
 
-export default Content;
+export default Content;/* 
+<Validation onclick={checkVotingStatus} id={id} /> */
 

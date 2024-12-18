@@ -14,16 +14,17 @@ import {URI27} from '../services/conexiones'
 import Notificacion from '../component/Notifications/Notifications'
 import { set } from 'react-hook-form';
 /* const socket = io("https://serverapivote.co.control360.co", { reconnection: false }); */
-const socket = io("http://localhost:8000/");
+const socket = io("https://serverapivote.co.control360.co/");
 
 
 /* const URL = 'https://serverapivote.co.control360.co/idCard/'; */
-const URL = 'http://localhost:8000/idCard/';
+const URL = 'https://serverapivote.co.control360.co/idCard/';
 const Formulario = ({IdCard,Notification}) => {
    const [isOpen, setIsOpen] = useState(false);
    const [estado, setestado] = useState(false);
    const [voto, setVoto] = useState('');
    const [valorSeleccionado, setValorSeleccionado] = useState();
+   const [votos, setVotos] = useState([]);
 /*    const cedula = localStorage.getItem('C.C');
    const valordecoded = atob(cedula) */
 
@@ -42,8 +43,8 @@ const Formulario = ({IdCard,Notification}) => {
     };
 
 
-/*    const URI3 = 'https://serverapivote.co.control360.co/votes/'; */
-const URI3 = 'http://localhost:8000/votes/';
+   const URI3 = 'https://serverapivote.co.control360.co/votes/'; 
+/* const URI3 = 'http://localhost:8000/votes/'; */
 
 
    
@@ -55,63 +56,65 @@ const URI3 = 'http://localhost:8000/votes/';
   
 
    };
+   const manejarCambio = (id_option, voto) => {
+    setVotos((prevVotos) => {
+        // Buscar si ya existe un voto con el mismo idOpcion
+        const votoExistente = prevVotos.find((v) => v.idOpcion === id_option);
 
-   const manejarCambio = (id, label) => {
-      setValorSeleccionado(id);  // Guardar el id seleccionado
-      setVoto(label);  // Guardar el label seleccionado
-      console.log("ID seleccionado:", id);
-      console.log("Label seleccionado:", label);
-   };
-
-   
-
-
-   const Enviarvoto = async () => {
-    try {
-        // Configuración de axios para incluir las credenciales (cookies)
-        const response = await axios.post(
-            URI3,
-            {
-                id_Option: valorSeleccionado, // Asegúrate de que estos campos coincidan con los esperados en el backend
-                Voto: voto,
-                id_card: IdCard,
-            },
-            {
-                withCredentials: true, // Esto asegura que las cookies se envíen con la solicitud
-            }
-        );
-
-        if (response.status === 201) {
-            // Emitir la señal al socket con el valor recibido del backend
-            socket.emit('señal', response.data.voto.id_voter);
-
-            console.log("Voto enviado exitosamente:", response.data.voto);
-
-            // Cambiar el estado según lo necesites
-            setestado(false);
-
-            // Verificar estado de votación con base en el token
-            checkVotingStatusFromToken();
-        } else {
-            console.warn(
-                `La solicitud no retornó el estado esperado. Código de respuesta: ${response.status}`
+        if (votoExistente) {
+            // Actualizar el voto existente con el nuevo label (si fuese necesario)
+            return prevVotos.map((v) =>
+                v.id_option === id_option ? { id_option, voto } : v
             );
-        }
-    } catch (error) {
-        if (error.response) {
-            // Si el backend retorna un error, lo manejamos aquí
-            console.error(
-                "Error al enviar el voto. Respuesta del servidor:",
-                error.response.data
-            );
-        } else if (error.request) {
-            // Si no hubo respuesta del servidor
-            console.error("No se recibió respuesta del servidor:", error.request);
         } else {
-            // Error al configurar la solicitud
-            console.error("Error al configurar la solicitud:", error.message);
+            // Agregar un nuevo voto
+            return [...prevVotos, { id_option, voto , id_card:IdCard}];
         }
+    });
+
+    console.log("Votos actualizados:", votos);
+};
+
+
+
+const Enviarvoto = async () => {
+  try {
+    // Verificar si hay votos en la lista
+    if (votos.length === 0) {
+      console.warn("No hay votos para enviar.");
+      return;
     }
+
+    console.log("Enviando toda la lista de votos:", votos);
+
+    // Realizar una única petición con toda la lista de votos
+    const response = await axios.post(
+      URI3,
+      { votos: votos }, // Enviar la lista completa
+      { withCredentials: true } // Asegurar que las cookies se envíen
+    );
+
+    if (response.status === 201 || response.status === 200) {
+      console.log("Todos los votos fueron enviados exitosamente.");
+      
+      // Emitir una señal si es necesario (ajustar según tu lógica)
+      socket.emit('señal', response.data);
+
+      // Limpiar el estado después de enviar
+      setVotos([]);
+      setestado(false);
+
+      // Verificar el estado de votación
+      checkVotingStatusFromToken();
+    } else {
+      console.warn("Hubo un problema al enviar los votos.");
+    }
+  } catch (error) {
+    console.error("Error al enviar la lista de votos:", error.message);
+    if (error.response) {
+      console.error("Respuesta del servidor:", error.response.data);
+    }
+  }
 };
 
 
@@ -122,11 +125,24 @@ const depuracion = () => {
 
 
 
+const opcion =[{
+  label: 'Si',
+  idOption: 2,
+  name:"si"
+},
+{
+  label: 'No',
+  idOption: 2,
+  name:'no'
+}
+
+]
+
 
   const checkVotingStatusFromToken = async () => {
     try {
         // Realizar la solicitud POST a la API para verificar el estado de votación
-        const response = await axios.post('http://localhost:8000/Check-user-token', {id_card:IdCard}, {
+        const response = await axios.post('https://serverapivote.co.control360.co/Check-user-token', {id_card:IdCard}, {
             withCredentials: true,  // Pasar withCredentials como configuración
         });
 
@@ -155,9 +171,7 @@ const depuracion = () => {
       
 
 
-   
-   
-   console.log("preguntasssss",idcard.preguntas)
+  console.log("votos",votos);
     
    return (
      
@@ -167,42 +181,58 @@ const depuracion = () => {
          </div>
 
 
-         {idcard.preguntas.length===0 ? <StartAsamble/>: estado? Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
+     <div className='h-auto  flex flex-col mb-3 gap-3 '>
+  
+     {idcard.preguntas.length===0 ? <StartAsamble/>: estado? Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
 
-   <div className='flex justify-center   mx-5'>
-     <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5  transition-all duration-75'>
-       <header className='flex flex-col gap-2'>
-         <p className='text-2xl'>{pregunta.Pregunta}</p>
-       </header>
-       <main>
-         <Form>
-           <div className="flex flex-col gap-4 text-lg max-w-[400px]">
-            {
-               pregunta.opciones.map((opcion) =>(
-
-                  <Form.Check
-                    className='flex gap-3'
-                    inline
-                    key={opcion.id}
-                    value={opcion.id}
-                    label={opcion.opcion}
-                    name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta
-                    type='radio'
-                    onChange={() => manejarCambio(opcion.id, opcion.opcion)}  
-                  /> 
-               ))
-               }
+<div className='flex justify-center   mx-5'>
+  <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5  transition-all duration-75'>
+    <header className='flex flex-col gap-2'>
+      <p className='text-2xl'>{"no hay preguntas"}</p>
+    </header>
+    <main>
+      <Form>
+        <div className="flex flex-col gap-4 text-lg max-w-[400px]">
+         
        
-           </div>
-         </Form>
-       </main>
-     </div>
-   </div>
+
+         {
+  pregunta.opciones.map((opcion) =>(
+
+     <Form.Check
+       className='flex gap-3'
+       inline
+       key={opcion.id}
+       value={opcion.id}
+       label={opcion.opcion}
+       name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta
+       type='radio'
+       onChange={() => manejarCambio(opcion.id, opcion.opcion)}  
+     /> 
+  ))
+  } 
+      
+           
+           
+    
+        </div>
+      </Form>
+    </main>
+  </div>
+</div>
 )):<Notificacion variant={"Success"} ></Notificacion>}
+   
+
+
+    
+     </div>
+
+   
+
    
             <div className={' flex justify-center w-full '}>
 
-{(idcard.preguntas && idcard.preguntas.length > 0 && estado) && (
+{(true) && (
   <button
     onClick={Enviarvoto}
     className="px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none mx-5 focus:ring focus:ring-blue-300 focus:ring-opacity-80 w-[500px]"
@@ -233,44 +263,62 @@ const depuracion = () => {
 export default Formulario;    
 
 
-{/* {Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
 
-   <div className='flex justify-center'>
-     <div className='flex flex-col w-[550px] h-[320px] gap-6 border-2 rounded-2xl p-5'>
-       <header className='flex flex-col gap-2'>
-         <p className='text-2xl'>{pregunta.Pregunta}</p>
-       </header>
-       <main>
-         <Form>
-           <div className="flex flex-col gap-4 text-lg">
-            {
-               pregunta.opciones.map((opcion) =>(
 
-                  <Form.Check
-                    className='flex gap-3'
-                    inline
-                    key={opcion.id}
-                    value={opcion.id}
-                    label={opcion.opcion}
-                    name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta
-                    type='radio'
-                    onChange={() => manejarCambio(opcion.id, opcion.opcion)}  
-                  /> 
-               ))
-               }
-       
-           </div>
-         </Form>
-       </main>
-     </div>
-   </div>
-)) } */}
+/* {
+  pregunta.opciones.map((opcion) =>(
+
+     <Form.Check
+       className='flex gap-3'
+       inline
+       key={opcion.id}
+       value={opcion.id}
+       label={opcion.opcion}
+       name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta
+       type='radio'
+       onChange={() => manejarCambio(opcion.id, opcion.opcion)}  
+     /> 
+  ))
+  } */
 
 
 
 
 
 
+/*   {false ? <StartAsamble/>: true? Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
+
+    <div className='flex justify-center   mx-5'>
+      <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5  transition-all duration-75'>
+        <header className='flex flex-col gap-2'>
+          <p className='text-2xl'>{"no hay preguntas"}</p>
+        </header>
+        <main>
+          <Form>
+            <div className="flex flex-col gap-4 text-lg max-w-[400px]">
+             
+           
+ 
+                   <Form.Check
+                     className='flex gap-3'
+                     inline
+                     key={1}
+                     value={'s'}
+                     label={'y tu quien esres'}
+                     name={''} // Agrupar las opciones por cada pregunta
+                     type='radio'
+         
+                   /> 
+                   
+               
+               
+        
+            </div>
+          </Form>
+        </main>
+      </div>
+    </div>
+ )):<Notificacion variant={"Success"} ></Notificacion>} */
 
 
 
@@ -282,12 +330,43 @@ export default Formulario;
 
 
 
+/*  {idcard.preguntas.length===0 ? <StartAsamble/>: estado? Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
 
-
-
-
-
-
-
+  <div className='flex justify-center   mx-5'>
+    <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5  transition-all duration-75'>
+      <header className='flex flex-col gap-2'>
+        <p className='text-2xl'>{"no hay preguntas"}</p>
+      </header>
+      <main>
+        <Form>
+          <div className="flex flex-col gap-4 text-lg max-w-[400px]">
+           
+         
+  
+           {
+    pregunta.opciones.map((opcion) =>(
+  
+       <Form.Check
+         className='flex gap-3'
+         inline
+         key={opcion.id}
+         value={opcion.id}
+         label={opcion.opcion}
+         name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta
+         type='radio'
+         onChange={() => manejarCambio(opcion.id, opcion.opcion)}  
+       /> 
+    ))
+    } 
+        
+             
+             
+      
+          </div>
+        </Form>
+      </main>
+    </div>
+  </div>
+  )):<Notificacion variant={"Success"} ></Notificacion>}  */
 
 
