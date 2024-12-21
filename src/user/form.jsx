@@ -21,7 +21,7 @@ const socket = io("https://serverapivote.co.control360.co/");
 const URL = 'https://serverapivote.co.control360.co/idCard/';
 const Formulario = ({IdCard,Notification}) => {
    const [isOpen, setIsOpen] = useState(false);
-   const [estado, setestado] = useState(false);
+   const [estado, setestado] = useState(true);
    const [voto, setVoto] = useState('');
    const [valorSeleccionado, setValorSeleccionado] = useState();
    const [votos, setVotos] = useState([]);
@@ -38,7 +38,7 @@ const Formulario = ({IdCard,Notification}) => {
       setIsOpen(true);
     };
   
-    const hideToast = () => {
+    const hideToast = () => {  
       setIsOpen(false);
     };
 
@@ -56,25 +56,39 @@ const Formulario = ({IdCard,Notification}) => {
   
 
    };
-   const manejarCambio = (id_option, voto) => {
+   const manejarCambio = (preguntaId, id_option, voto) => {
     setVotos((prevVotos) => {
-        // Buscar si ya existe un voto con el mismo idOpcion
-        const votoExistente = prevVotos.find((v) => v.idOpcion === id_option);
+        // Buscar si ya existe un grupo para la pregunta actual
+        const preguntaExistente = prevVotos.find((v) => v.preguntaId === preguntaId);
 
-        if (votoExistente) {
-            // Actualizar el voto existente con el nuevo label (si fuese necesario)
+        if (preguntaExistente) {
+            // Si la pregunta ya existe, actualizar la opción correspondiente
             return prevVotos.map((v) =>
-                v.id_option === id_option ? { id_option, voto } : v
+                v.preguntaId === preguntaId
+                    ? {
+                        ...v,
+                        opciones: v.opciones.map((op) =>
+                            op.id_option === id_option
+                                ? { ...op, voto, id_card: IdCard }
+                                : op
+                        )
+                    }
+                    : v
             );
         } else {
-            // Agregar un nuevo voto
-            return [...prevVotos, { id_option, voto , id_card:IdCard}];
+            // Si la pregunta no existe, agregarla con la nueva opción
+            return [
+                ...prevVotos,
+                {
+                    preguntaId, // Identificador único de la pregunta
+                    opciones: [
+                        { id_option, voto, id_card: IdCard } // Agregar la primera opción de la pregunta
+                    ]
+                }
+            ];
         }
     });
-
-    console.log("Votos actualizados:", votos);
 };
-
 
 
 const Enviarvoto = async () => {
@@ -125,18 +139,7 @@ const depuracion = () => {
 
 
 
-const opcion =[{
-  label: 'Si',
-  idOption: 2,
-  name:"si"
-},
-{
-  label: 'No',
-  idOption: 2,
-  name:'no'
-}
 
-]
 
 
   const checkVotingStatusFromToken = async () => {
@@ -188,7 +191,7 @@ const opcion =[{
 <div className='flex justify-center   mx-5'>
   <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5  transition-all duration-75'>
     <header className='flex flex-col gap-2'>
-      <p className='text-2xl'>{"no hay preguntas"}</p>
+      <p className='text-2xl'>{pregunta.Pregunta}</p>
     </header>
     <main>
       <Form>
@@ -207,7 +210,7 @@ const opcion =[{
        label={opcion.opcion}
        name={`group-${pregunta.id}`} // Agrupar las opciones por cada pregunta
        type='radio'
-       onChange={() => manejarCambio(opcion.id, opcion.opcion)}  
+       onChange={() => manejarCambio(pregunta.id,opcion.id, opcion.opcion)}  
      /> 
   ))
   } 
@@ -232,7 +235,7 @@ const opcion =[{
    
             <div className={' flex justify-center w-full '}>
 
-{(true) && (
+{(idcard.preguntas && idcard.preguntas.length > 0 && estado) && (
   <button
     onClick={Enviarvoto}
     className="px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none mx-5 focus:ring focus:ring-blue-300 focus:ring-opacity-80 w-[500px]"

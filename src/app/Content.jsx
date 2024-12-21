@@ -19,7 +19,7 @@ import { set } from "react-hook-form";
 const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/';
 
 const Content = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     
     const socket = io("https://serverapivote.co.control360.co/");
 
@@ -86,7 +86,7 @@ const Content = () => {
 
         try {
             const response = await axios.post(
-                `${URI24}${id}`,
+                `${URI24}${decodedId}`,
                 { Cedula },
                 { withCredentials: true }
             );
@@ -121,11 +121,11 @@ const Content = () => {
                 setEstado(true);
 
             } else {
-                console.log(response.data);
+          
                 // Aquí puedes manejar los casos de error como "No registrado" o "Ya ha votado"
             }
         } catch (error) {
-            console.log('Error al verificar el estado de votación:', error.message);
+         
             // Puedes manejar los errores de la llamada aquí, como si no se encuentra el token
         }
     };
@@ -153,7 +153,7 @@ const Content = () => {
                 setAsistencia(asistencia);  
                 // Validación adicional del valor de asistencia
                 if (asistencia !== undefined && asistencia !== null) {
-                    console.log("Asistencia del usuario:", asistencia);
+            
 
 
                     return asistencia;
@@ -190,7 +190,7 @@ const Content = () => {
     useEffect(() => {
         socket.on('ISO', (Estado) => {
             setEstatus(Estado);
-            console.log(Estado)
+
         })
         
         getEstatus();
@@ -235,7 +235,7 @@ const Content = () => {
 useEffect(() => {
 
     socket.on('ASIST',(Asistencia) => {
-    console.log("vaina recibida del soctet",Asistencia)
+
     setseñal(Asistencia)
 })
 
@@ -248,7 +248,7 @@ obtenerAsistencia();
         <div className="h-full">
 
             <Sucesfull open={isOpen} close={hideToast} />
-            {estado ? <Layaut children={component} /> : <Validation onclick={checkVotingStatus} />  }
+            {estado ? <Layaut children={component} /> : <Validation onclick={checkVotingStatus} id={id} />  }
            
         </div>
     );

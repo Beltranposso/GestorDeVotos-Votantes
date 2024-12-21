@@ -4,12 +4,14 @@ import PNG2 from "../../assets/Espera.png";
 import PNG3 from "../../assets/Bien.png";
 import PNG4 from "../../assets/Error.png";
 import DangerImage from "../../assets/DangerImage.png";
+import { useNavigate } from "react-router-dom";
 
 const MyComponent = ({ variant }) => {
   const [color, setColor] = useState("");
   const [text, setText] = useState("");
   const[text2, setText2] = useState("");
   const [image, setImage] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (variant === "Activa") {
@@ -88,7 +90,7 @@ const MyComponent = ({ variant }) => {
                 backgroundColor: "#00A907",
                 boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
               }}
-              onClick={() => window.location.reload()}
+              onClick={() => navigate("/Home")}
             >
               Ya puedes cerrar esta ventana
             </button>
