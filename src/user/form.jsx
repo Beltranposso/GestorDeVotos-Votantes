@@ -3,7 +3,7 @@ import Footer from '../footer/footer'
 import Button from 'react-bootstrap/Button';
 import io from 'socket.io-client';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState,useRef } from 'react';
 import Form from 'react-bootstrap/Form';
 import ControlImg from '../assets/file.png'
 import Sucesfull from '../component/Sucesfull';
@@ -12,19 +12,40 @@ import { useNavigate } from 'react-router-dom';
 import StartAsamble from '../component/StartedAsamlea'
 import {URI27} from '../services/conexiones'
 import Notificacion from '../component/Notifications/Notifications'
-import { set } from 'react-hook-form';
-/* const socket = io("https://serverapivote.co.control360.co", { reconnection: false }); */
-const socket = io("https://serverapivote.co.control360.co/");
+import Cronometer from '../component/Cronometer'
+import MotalTimeOut from '../component/ModalTimeOut'
+
+import Loading from '../component/loadingpestaña'
+
+ const socket = io("http://localhost:8000/", { reconnection: true },); 
+
+
+/* const socket = io("https://serverapivote.co.control360.co/"); */
 
 
 /* const URL = 'https://serverapivote.co.control360.co/idCard/'; */
-const URL = 'https://serverapivote.co.control360.co/idCard/';
+const URL = 'http://localhost:8000/idCard/';
 const Formulario = ({IdCard,Notification}) => {
-   const [isOpen, setIsOpen] = useState(false);
-   const [estado, setestado] = useState(true);
-   const [voto, setVoto] = useState('');
-   const [valorSeleccionado, setValorSeleccionado] = useState();
-   const [votos, setVotos] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [estado, setestado] = useState();
+  const[loading, setLoading] = useState(false);
+  const [voto, setVoto] = useState('');
+  const [valorSeleccionado, setValorSeleccionado] = useState();
+  const [votos, setVotos] = useState([]);
+  const [preguntaId, setPreguntaId] = useState();
+  const [tiempoRestante, setTiempoRestante] = useState(null);
+  const intervaloRef = useRef(null)
+  const [terminado, setTerminado] = useState(false);
+  const [estadoSuccess, setEstadoSuccess] = useState(false);
+  const [component, setComponent] = useState(<Loading/>);
+  const [Nombre, setNombre] = useState('');
+  const [Apoderado, setApoderado] = useState('');
+  const [Coeficiente, setCoeficiente] = useState('');
+  const [CoeficienteTotal, setCoeficienteTotal] = useState('');
+  const[señal, setseñal] = useState('');
+  const[close, setClose] = useState(false);
+
+
 /*    const cedula = localStorage.getItem('C.C');
    const valordecoded = atob(cedula) */
 
@@ -33,6 +54,7 @@ const Formulario = ({IdCard,Notification}) => {
    const [idcard, setIdcard] = useState({
       preguntas: []
    });
+   console.log(idcard)
    
    const showToast = () => {
       setIsOpen(true);
@@ -43,8 +65,8 @@ const Formulario = ({IdCard,Notification}) => {
     };
 
 
-   const URI3 = 'https://serverapivote.co.control360.co/votes/'; 
-/* const URI3 = 'http://localhost:8000/votes/'; */
+    const URI3 = 'http://localhost:8000/votes/';  
+/*  const URI3 = 'https://serverapivote.co.control360.co/votes/';  */
 
 
    
@@ -53,9 +75,11 @@ const Formulario = ({IdCard,Notification}) => {
    const GetId = async () => {
       const response = await axios.get(URL + IdCard);
       setIdcard(response.data);
-  
-
+      setPreguntaId(response.data.preguntas[0].id);
+      console.log("datos traidos del server:::",response.data);
    };
+ 
+ 
    const manejarCambio = (preguntaId, id_option, voto) => {
     setVotos((prevVotos) => {
         // Buscar si ya existe un grupo para la pregunta actual
@@ -69,7 +93,7 @@ const Formulario = ({IdCard,Notification}) => {
                         ...v,
                         opciones: v.opciones.map((op) =>
                             op.id_option === id_option
-                                ? { ...op, voto, id_card: IdCard }
+                                ? { ...op, voto, id_card: IdCard,preguntaId }
                                 : op
                         )
                     }
@@ -82,7 +106,7 @@ const Formulario = ({IdCard,Notification}) => {
                 {
                     preguntaId, // Identificador único de la pregunta
                     opciones: [
-                        { id_option, voto, id_card: IdCard } // Agregar la primera opción de la pregunta
+                        { id_option, voto, id_card: IdCard,preguntaId } // Agregar la primera opción de la pregunta
                     ]
                 }
             ];
@@ -99,8 +123,7 @@ const Enviarvoto = async () => {
       return;
     }
 
-    console.log("Enviando toda la lista de votos:", votos);
-
+    
     // Realizar una única petición con toda la lista de votos
     const response = await axios.post(
       URI3,
@@ -109,7 +132,7 @@ const Enviarvoto = async () => {
     );
 
     if (response.status === 201 || response.status === 200) {
-      console.log("Todos los votos fueron enviados exitosamente.");
+   
       
       // Emitir una señal si es necesario (ajustar según tu lógica)
       socket.emit('señal', response.data);
@@ -132,61 +155,191 @@ const Enviarvoto = async () => {
 };
 
 
-const depuracion = () => {
-    socket.emit('señal', "vote user : "+IdCard);
-    console.log("Voto enviado exitosamente:" , IdCard);
+
+
+  useEffect(() => {
+    GetId();
+    checkVotingStatusFromToken();
+  }, []);
+ 
+const relooding = () => {
+  location.reload();
 }
+useEffect(() => {
+socket.on('DataQ',(data) => {
+
+  setseñal(data)
+ }); 
+
+ GetId();
+
+}, [señal,close]);
+
+ 
+useEffect(() => {
+  const handleSocketEvent = (r) => {
+    setClose(r); // Actualiza el estado 'close' cuando el socket reciba la señal
+  };
+
+  // Escuchar evento 'CL' del socket
+  socket.on('CL', handleSocketEvent);
+
+  // Limpieza para evitar múltiples listeners
+  return () => {
+    socket.off('CL', handleSocketEvent);
+  };
+}, []); // Se ejecuta al montar, y solo escucha al socket
+
+useEffect(() => {
+  // Este efecto depende de 'close' y se ejecuta solo cuando 'close' cambia
+  if (close) {
+    GetId();
+    relooding();
+  }
+}, [close]); // A
 
 
 
+const checkVotingStatusFromToken = async () => {
+  try {
+      // Realizar la solicitud POST a la API para verificar el estado de votación
+      const response = await axios.post(
+          'http://localhost:8000/Check-user-vote',
+          { id_question:preguntaId }, // Pasar el ID de la pregunta como parte del cuerpo de la solicitud
+          {
+              withCredentials: true, // Pasar withCredentials como configuración para incluir cookies
+          }
+      );
+       
+      if (response.data.message === 'El usuario no ha votado en esta pregunta.') {
+        // Cambiar el estado si el usuario ya votó
+     
+        setLoading(true); // Cambiar el estado si el usuario no ha votado
+        setestado(true);
+      } else if (response.data.message === 'El usuario ya votó en esta pregunta.') {
+       
+        setestado(false)
 
+      }
+  } catch (error) {
+      console.error('Error al verificar el estado de votación:', error.message);
+    
+      // Manejo de errores
+     // Opcional: establecer un estado por defecto en caso de error
+  }
+};
 
+      
+    
 
-  const checkVotingStatusFromToken = async () => {
-    try {
-        // Realizar la solicitud POST a la API para verificar el estado de votación
-        const response = await axios.post('https://serverapivote.co.control360.co/Check-user-token', {id_card:IdCard}, {
-            withCredentials: true,  // Pasar withCredentials como configuración
+       
+      useEffect(() => {
+       // URL del servidor
+
+        // Enviar el ID de la pregunta al servidor
+        socket.emit('startCronometro', preguntaId);
+
+        // Escuchar actualizaciones del cronómetro
+        socket.on('cronometro', (data) => {
+            setTiempoRestante(data.tiempoRestante);
+            setTerminado(data.terminado);
+
+            // Si el cronómetro ha terminado, desconectar
+            if (data.terminado) {
+                socket.disconnect();
+            }
         });
 
-        if (response.data.success) {
-            console.log('El usuario está registrado y no ha votado aún');
-          
-            setestado(true);
-           
-        } else {
-            console.log(response.data);
-          setestado(false);
-        }
-    } catch (error) {
-        console.log('Error al verificar el estado de votación:', error.message);
-        // Puedes manejar los errores de la llamada aquí, como si no se encuentra el token
-    }
-};
-  
-      
-      useEffect(() => {
-         GetId();
-         checkVotingStatusFromToken();
-      }, [estado]);
+        // Manejar errores
+        socket.on('error', (errorMessage) => {
+            console.error('Error del servidor:', errorMessage);
+        });
 
-
-      
-
-
-  console.log("votos",votos);
-    
-   return (
+        // Limpiar conexión al desmontar el componente
      
-      <div className="flex flex-col h-full justify-between">
-         <div>
-            <img src={ControlImg} alt="" width={200} height={100} />
+    }, [preguntaId]);
+
+/* const esperadefunciones = async () => {
+  await GetId() 
+  await checkVotingStatusFromToken()
+} */
+
+useEffect(() => {
+  const esperadefunciones = async () => {
+    await GetId(); // Esto actualiza preguntaId
+    await checkVotingStatusFromToken(); // Esto depende de preguntaId
+  };
+
+  // Solo ejecuta esperadefunciones si preguntaId está definido
+  if (preguntaId) {
+    esperadefunciones();
+  }
+}, [preguntaId]);
+   
+
+
+const decodeToken = async () => {
+  try {
+      // Hacer una solicitud GET al backend para decodificar el token
+      const response = await axios.get("http://localhost:8000/UsersDefinitive/Token/decoded/", {
+          withCredentials: true, // Importante para enviar cookies al backend
+      });
+
+      // Verificar si la respuesta fue exitosa
+      if (response.data.success) {
+       
+          setNombre(response.data.data.NombreCompleto);
+          setApoderado(response.data.data.PoderesDelegados);
+          setCoeficiente(response.data.data.RegisterQuorum);
+          setCoeficienteTotal(response.data.data.quorum);
+      } else {
+          console.error("Error:", response.data.message);
+          return null;
+      }
+  } catch (error) {
+      console.error("Error al llamar a la API para decodificar el token:", error.message);
+      return null;
+  }
+};
+useEffect(() => {
+
+if(!estado){
+  setComponent(<Notificacion variant={"Success"} ></Notificacion>)
+
+}else{
+
+}
+decodeToken();
+
+},[])
+
+
+
+
+
+
+
+
+
+
+   return (
+    <>
+
+    <div className="flex flex-col h-full justify-between">
+         
+          <MotalTimeOut isOpen={tiempoRestante===0}></MotalTimeOut>
+         <div className='flex justify-center sm:justify-between '>
+            <img src={ControlImg} alt="" width={200} height={100}  className='hidden sm:flex'/>
+            <div className='flex items-center justify-center p-2 '>
+
+           <Cronometer estado={idcard.preguntas.length===0} seconds={tiempoRestante} isLoading={tiempoRestante === null}></Cronometer>
+            </div>
          </div>
 
 
      <div className='h-auto  flex flex-col mb-3 gap-3 '>
   
-     {idcard.preguntas.length===0 ? <StartAsamble/>: estado? Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
+     {idcard.preguntas.length===0 ? <StartAsamble nombre={Nombre} apoderado={Apoderado} coeficiente={Coeficiente} coeficienteTotal={CoeficienteTotal}/>:estado? Array.isArray(idcard.preguntas) &&   idcard.preguntas.map((pregunta) => (
 
 <div className='flex justify-center   mx-5'>
   <div className='flex flex-col w-[550px] h-auto py-10 gap-6 border-2 rounded-2xl p-5  transition-all duration-75'>
@@ -222,8 +375,9 @@ const depuracion = () => {
       </Form>
     </main>
   </div>
+
 </div>
-)):<Notificacion variant={"Success"} ></Notificacion>}
+)):component}
    
 
 
@@ -255,10 +409,7 @@ const depuracion = () => {
          </footer>
 
       </div>
-
-
-
-
+      </> 
 )
 }
 

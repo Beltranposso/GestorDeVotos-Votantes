@@ -43,7 +43,7 @@ const Home = () => {
    getAsamblea();
      
   }, []);
-console.log(Asamblea)
+
   
 /*   const token = Cookies.get('auth_token');
   const decoded = jwtDecode(token);

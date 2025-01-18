@@ -13,15 +13,15 @@ import Notification from "../component/Notifications/Notifications";
 import { use } from "react";
 import { set } from "react-hook-form";
 
-/* const socket = io("https://serverapivote.co.control360.co", { reconnection: false }); */
+ const socket = io("http://localhost:8000", { reconnection: true }); 
 
-/*  const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/'; */
-const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/';
+ const URI9 = 'https://serverapivote.co.control360.co/api/votacion/estado/'; 
+/* const URI9 = 'http://localhost:8000/api/votacion/estado/'; */
 
 const Content = () => {
     const {id} = useParams();
-    
-    const socket = io("https://serverapivote.co.control360.co/");
+/*     
+    const socket = io("http://localhost:8000/"); */
 
     const [estado, setEstado] = useState();
 
@@ -30,6 +30,7 @@ const Content = () => {
     const [Estatus, setEstatus] = useState('');
     const[Asistencia, setAsistencia] = useState('');
     const[señal, setseñal] = useState('');
+    const[mensaje, setMensaje] = useState('');
     const decodedId = atob(id);
 
     useEffect(() => {
@@ -78,7 +79,7 @@ const Content = () => {
     };
 
 
-    const checkVotingStatus = async (Cedula) => {
+    const  checkVotingStatus = async (Cedula) => {
         if (!Cedula) {
             alert("Cédula no proporcionada.");
             return;
@@ -91,7 +92,7 @@ const Content = () => {
                 { withCredentials: true }
             );
 
-            const { success, message } = response.data;
+            const { success } = response.data;
 
             if (success) {
 
@@ -111,19 +112,24 @@ const Content = () => {
     const checkVotingStatusFromToken = async () => {
         try {
             // Realizar la solicitud POST a la API para verificar el estado de votación
-            const response = await axios.post('https://serverapivote.co.control360.co/Check-user-token', { id_card: decodedId }, {
+            const response = await axios.post('http://localhost:8000/Check-user-token', { id_card: decodedId }, {
                 withCredentials: true,  // Pasar withCredentials como configuración
             });
 
-            if (response.data.message === 'El usuario ya ha votado.' || response.data.message === 'Ya te verificaste en esta Asmablea.') {
+            if (response.data.message === 'El usuario está registrado en esta Asamblea.' ) {
 
 
                 setEstado(true);
 
-            } else {
+            } else if(response.data.message ==='No estás registrado en esta Asamblea.'){
           
-                // Aquí puedes manejar los casos de error como "No registrado" o "Ya ha votado"
-            }
+            setEstado(false);
+        
+            } else if(response.data.message === 'La cédula no es válida.'){
+                setEstado(false);
+                alert("Cedula Invalida porfavor vuelva a verificar");
+                }
+           
         } catch (error) {
          
             // Puedes manejar los errores de la llamada aquí, como si no se encuentra el token
@@ -138,12 +144,12 @@ const Content = () => {
         } catch (error) {
             console.error('Error al obtener el enlace:', error);
         }
-    }
+    } 
 
     const obtenerAsistencia = async () => {
         try {
             // Mejor manejo de errores y más descriptivo
-            const response = await axios.get('https://serverapivote.co.control360.co/UsersDefinitive/A/get-asistencia', {
+            const response = await axios.get('http://localhost:8000/UsersDefinitive/A/get-asistencia', {
                 withCredentials: true,
             });
     
@@ -233,9 +239,8 @@ const Content = () => {
 
  
 useEffect(() => {
-
     socket.on('ASIST',(Asistencia) => {
-
+   
     setseñal(Asistencia)
 })
 
@@ -248,7 +253,7 @@ obtenerAsistencia();
         <div className="h-full">
 
             <Sucesfull open={isOpen} close={hideToast} />
-            {estado ? <Layaut children={component} /> : <Validation onclick={checkVotingStatus} id={id} />  }
+            {estado ? <Layaut children={component} />:<Validation onclick={checkVotingStatus} id={id} />}
            
         </div>
     );

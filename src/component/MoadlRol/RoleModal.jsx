@@ -27,7 +27,7 @@ export function RoleModal({ isOpen, onClose, role, Rute,estado }) {
             withCredentials: true, // Necesario para enviar cookies al backend          
         });
 
-        console.log("Valor de la columna:", response.data.data);
+     
 
         setAsistencia(response.data.data);
     } catch (error) {
@@ -72,7 +72,7 @@ const setdeletemenssage = () =>{
 
 
 
-console.log("estadoASSDasdAS ", estado);
+
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">

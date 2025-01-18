@@ -1,9 +1,11 @@
 
 import React from 'react';
 import { Users, Gavel } from 'lucide-react';
-const StartedAsamlea = () => {
+
+import Infousuarios from './InfoUser'
+const StartedAsamlea = ({nombre,apoderado,coeficiente,coeficienteTotal}) => {
     return (
-        <div className="min-h-screen  bg-white flex items-center justify-center p-4">
+        <div className=" bg-white flex items-center justify-center p-4">
         <div className="bg-gray-50 rounded-2xl p-8 md:p-12 shadow-xl border border-gray-100 max-w-xl w-full">
           <div className="flex flex-col items-center space-y-6">
             <div className="flex items-center space-x-4">
@@ -17,9 +19,7 @@ const StartedAsamlea = () => {
             
             <div className="w-24 h-1 bg-blue-500 rounded-full mt-4"></div>
             
-            <p className="text-gray-600 text-center text-lg">
-              Bienvenidos a todos los participantes
-            </p>
+          <Infousuarios nombre={nombre}apoderado={apoderado}   coeficiente={coeficiente}  coeficienteTotal={coeficienteTotal} ></Infousuarios>
           </div>
         </div> 
       </div>
