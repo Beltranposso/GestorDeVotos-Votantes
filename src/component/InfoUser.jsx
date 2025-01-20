@@ -12,11 +12,10 @@ export default function InfoContainer({ nombre, apoderado, coeficiente, coeficie
         <div className="flex items-center space-x-1.5 sm:space-x-3 p-1.5 sm:p-2.5 bg-blue-50 rounded-sm sm:rounded text-xs sm:text-sm">
           <User className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
           <div className="min-w-0">
-            <span className="text-gray-600 font-medium">Nombre:</span>
+            <span className="text-gray-600 font-medium">Tu:</span>
             <span className="ml-1 sm:ml-2 text-gray-800">{nombre}</span>
           </div>
         </div>
-
         <div className="flex items-center space-x-1.5 sm:space-x-3 p-1.5 sm:p-2.5 bg-blue-50 rounded-sm sm:rounded text-xs sm:text-sm">
           <Users className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
           <div className="min-w-0">

@@ -84,16 +84,16 @@ const MyComponent = ({ variant }) => {
         )}
         {variant === "Success" && (
           <div className="mt-9">
-            <button
+            <div
               className="px-10 py-5 text-white font-bold text-lg rounded-full shadow-lg hover:bg-[#008806] focus:outline-none"
               style={{
                 backgroundColor: "#00A907",
                 boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
               }}
-              onClick={() => navigate("/Home")}
+        
             >
-              Ya puedes cerrar esta ventana
-            </button>
+             Espera a que el tiempo de la Votacion termine.
+            </div>
           </div>
         )}
       </div>

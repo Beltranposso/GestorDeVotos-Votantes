@@ -44,7 +44,7 @@ const Formulario = ({IdCard,Notification}) => {
   const [CoeficienteTotal, setCoeficienteTotal] = useState('');
   const[señal, setseñal] = useState('');
   const[close, setClose] = useState(false);
-
+console.log("idcard::::::",IdCard);
 
 /*    const cedula = localStorage.getItem('C.C');
    const valordecoded = atob(cedula) */
